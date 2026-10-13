@@ -1,0 +1,55 @@
+name: Modelling error
+description: The simulator says X, real hardware does Y
+labels: ["modelling"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the most valuable kind of issue for this project. A modelling error with a
+        reproduction is worth more than a feature request.
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What real hardware does
+      description: The behaviour you expect, and where the expectation comes from — a datasheet, a measurement, a textbook.
+      placeholder: |
+        A 4 mm hose of 2 m should slow the stroke noticeably. On a real rig the extend time
+        roughly doubles.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What the simulator does
+      description: Numbers, not impressions. Stroke times, pressures, convergence counts.
+      placeholder: |
+        Extend time changes from 0.48 s to 0.49 s regardless of wire length.
+    validations:
+      required: true
+
+  - type: textarea
+    id: circuit
+    attributes:
+      label: Circuit
+      description: Export the schematic as JSON (Export ▸ JSON) and paste it here, or attach the file.
+      render: json
+    validations:
+      required: true
+
+  - type: input
+    id: domain
+    attributes:
+      label: Domain
+      placeholder: pneumatics / hydraulics / electrics / digital / electronics
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checked
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked [docs/LIMITATIONS.md](../blob/main/docs/LIMITATIONS.md) — this is not an already-documented boundary
+          required: true

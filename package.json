@@ -1,0 +1,35 @@
+{
+  "name": "fluidlab",
+  "version": "1.0.0",
+  "description": "Browser-based pneumatics, electropneumatics, hydraulics and electronics simulator with a real network solver — ISO 6358 flow, MNA circuit analysis, GRAFCET and a soft PLC. No build step, no dependencies.",
+  "type": "module",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "author": "Alexander Hahn",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alex-hahn/fluidlab.git"
+  },
+  "keywords": [
+    "simulation",
+    "pneumatics",
+    "hydraulics",
+    "electronics",
+    "grafcet",
+    "plc",
+    "iec-61131",
+    "spice",
+    "mna",
+    "iso-6358",
+    "engineering-education"
+  ],
+  "scripts": {
+    "test": "node tests/run.js",
+    "start": "node serve.mjs 8777",
+    "serve": "python3 -m http.server 8777"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

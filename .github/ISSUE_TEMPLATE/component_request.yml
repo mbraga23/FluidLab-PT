@@ -1,0 +1,55 @@
+name: Component request
+description: A component the library is missing
+labels: ["component"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A new component is one catalog entry — symbol, ports, physics, faults. What makes a
+        request actionable is the physics, not the symbol.
+
+  - type: input
+    id: component
+    attributes:
+      label: Component
+      placeholder: Accumulator (bladder type) / JK flip-flop / variable displacement pump
+    validations:
+      required: true
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain
+      options:
+        - Pneumatics
+        - Hydraulics
+        - Electrics
+        - Digital logic
+        - Electronics
+    validations:
+      required: true
+
+  - type: textarea
+    id: physics
+    attributes:
+      label: Governing equation
+      description: What does it do to the network? A conductance, a stored state, a nonlinearity? Cite the source if there is one.
+      placeholder: |
+        Gas-charged accumulator: polytropic gas law on the trapped volume,
+        p·V^n = const with n ≈ 1.4 for fast cycles.
+    validations:
+      required: true
+
+  - type: textarea
+    id: parameters
+    attributes:
+      label: Catalog parameters
+      description: What a user would type in — the values a real datasheet lists.
+      placeholder: |
+        Nominal volume [l], pre-charge pressure [bar], max working pressure [bar]
+
+  - type: textarea
+    id: faults
+    attributes:
+      label: Plausible faults
+      description: Which of `stuck`, `clogged`, `leak`, `off`, `seized`, `drift` … can this part actually have?

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FluidLab — Simulador de pneumática</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230a0b0c'/%3E%3Cg fill='none' stroke='%23ffa41c' stroke-width='1.4'%3E%3Crect x='3.5' y='8' width='8.5' height='8.5' rx='1'/%3E%3Crect x='12' y='8' width='8.5' height='8.5' rx='1'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="1.5" y="7.5" width="9" height="9" rx="1"/>
+      <rect x="10.5" y="7.5" width="9" height="9" rx="1"/>
+      <path d="M4 16.5 L4 10 M7.5 10 L7.5 16.5" />
+      <path d="M22.5 9 L22.5 15"/>
+    </svg>
+    <span class="brand-name">FluidLab</span>
+  </div>
+
+  <div class="tool-group" role="group" aria-label="Ferramentas">
+    <button class="tool" data-tool="select" title="Selecionar (V)"><kbd>V</kbd>Seleção</button>
+    <button class="tool" data-tool="wire" title="Desenhar conexão (W)"><kbd>W</kbd>Conexão</button>
+    <button class="tool" data-tool="probe" title="Adicionar sonda (P) — não interfere no circuito"><kbd>P</kbd>Sonda</button>
+  </div>
+
+  <div class="tool-group" role="group" aria-label="Histórico">
+    <button id="btn-undo" class="icon-btn" title="Desfazer (Cmd/Ctrl+Z)" disabled>
+      <svg viewBox="0 0 16 16"><path d="M3.5 7.5 H10 a3 3 0 0 1 0 6 H6.5"/><path d="M6 4 L3 7.5 L6 11"/></svg>
+    </button>
+    <button id="btn-redo" class="icon-btn" title="Refazer (Cmd/Ctrl+Shift+Z)" disabled>
+      <svg viewBox="0 0 16 16"><path d="M12.5 7.5 H6 a3 3 0 0 0 0 6 H9.5"/><path d="M10 4 L13 7.5 L10 11"/></svg>
+    </button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="transport" role="group" aria-label="Simulação">
+    <button id="btn-run" class="btn btn-run" title="Iniciar / Pausar (Espaço)">
+      <svg viewBox="0 0 16 16" class="icon"><polygon points="4,2.5 13,8 4,13.5"/></svg>
+      <span id="run-label">Iniciar</span>
+    </button>
+    <button id="btn-stop" class="btn btn-ghost" title="Parar e reiniciar (Esc)">
+      <svg viewBox="0 0 16 16" class="icon"><rect x="4" y="4" width="8" height="8" rx="1"/></svg>
+      Parar
+    </button>
+  </div>
+
+  <div class="speed">
+    <label for="speed">Velocidade</label>
+    <input id="speed" type="range" min="0.1" max="2" step="0.1" value="1">
+    <output id="speed-out" class="mono">1,0×</output>
+  </div>
+
+  <div class="spacer"></div>
+
+  <div class="tool-group">
+    <select id="examples" class="select" title="Carregar circuito de exemplo">
+      <option value="">Carregar exemplo …</option>
+    </select>
+    <button id="btn-new" class="btn btn-ghost">Novo</button>
+    <div class="menu-wrap">
+      <button id="btn-export" class="btn btn-ghost" aria-haspopup="true" aria-expanded="false">Exportar ▾</button>
+      <div id="export-menu" class="menu" hidden>
+        <button data-export="json">Esquema (JSON)</button>
+        <button data-export="svg">Desenho (SVG)</button>
+        <button data-export="png">Desenho (PNG)</button>
+        <button data-export="pdf">Desenho (PDF)</button>
+        <button data-export="parts">Lista de materiais (CSV)</button>
+      </div>
+    </div>
+    <button id="btn-load" class="btn btn-ghost">Importar</button>
+    <input id="file-input" type="file" accept="application/json" hidden>
+  </div>
+</header>
+
+<main class="workspace">
+
+  <aside class="panel library" aria-label="Biblioteca de componentes">
+    <div class="panel-head">
+      <h2>Biblioteca de componentes</h2>
+    </div>
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 16 16" aria-hidden="true">
+        <circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 L14 14"/>
+      </svg>
+      <input id="lib-search" type="search" placeholder="Pesquisar …" autocomplete="off">
+    </div>
+    <div id="lib-domains" class="lib-domains" role="group" aria-label="Filtrar por área">
+      <button class="chip" data-domain="all" aria-pressed="true">Todos</button>
+      <button class="chip" data-domain="pneu" aria-pressed="false">Pneumática</button>
+      <button class="chip" data-domain="hyd" aria-pressed="false">Hidráulica</button>
+      <button class="chip" data-domain="elec" aria-pressed="false">Elétrica</button>
+      <button class="chip" data-domain="dig" aria-pressed="false">Digital</button>
+    </div>
+    <div id="lib-list" class="lib-list"></div>
+    <p class="hint">Arraste um componente para a área de desenho ou clique nele.</p>
+  </aside>
+
+  <div class="resize-handle resize-v" data-resize="left" role="separator"
+       aria-label="Ajustar largura da biblioteca" title="Arraste para ajustar · Clique duplo restaura o tamanho"></div>
+
+  <section class="canvas-wrap">
+    <svg id="sheet" class="sheet">
+      <defs>
+        <pattern id="grid-fine" width="10" height="10" patternUnits="userSpaceOnUse">
+          <path d="M 10 0 L 0 0 0 10" fill="none" class="grid-fine"/>
+        </pattern>
+        <pattern id="grid-bold" width="100" height="100" patternUnits="userSpaceOnUse">
+          <rect width="100" height="100" fill="url(#grid-fine)"/>
+          <path d="M 100 0 L 0 0 0 100" fill="none" class="grid-bold"/>
+        </pattern>
+      </defs>
+      <rect id="grid-bg" class="grid-bg" x="-5000" y="-5000" width="20000" height="20000" fill="url(#grid-bold)"/>
+      <g id="viewport">
+        <g id="layer-wires"></g>
+        <g id="layer-parts"></g>
+        <g id="layer-ports"></g>
+        <g id="layer-overlay"></g>
+      </g>
+    </svg>
+
+    <div class="canvas-hud">
+      <div class="hud-left">
+        <span id="sim-state" class="pill pill-idle">Edição</span>
+        <span class="mono" id="sim-clock">0,00 s</span>
+        <div id="legend" class="legend">
+          <span class="legend-title">Pressão</span>
+          <div class="legend-bar"></div>
+          <span class="legend-scale mono">0–6 bar</span>
+        </div>
+      </div>
+      <div class="hud-right">
+        <button class="zoom-btn" id="zoom-out" title="Diminuir zoom">−</button>
+        <output class="mono" id="zoom-out-val">100 %</output>
+        <button class="zoom-btn" id="zoom-in" title="Aumentar zoom">+</button>
+        <button class="zoom-btn wide" id="zoom-fit" title="Ajustar à tela">Ajustar</button>
+      </div>
+    </div>
+
+    <section id="diagram-panel" class="diagram-panel" aria-label="Análise">
+      <div class="resize-handle resize-h" data-resize="diagram" role="separator"
+           aria-label="Ajustar altura do painel" title="Arraste para ajustar · Clique duplo restaura o tamanho"></div>
+
+      <header class="diagram-head">
+        <div class="panel-tabs" role="tablist">
+          <button class="panel-tab" data-tab="steps" role="tab" aria-selected="true">Deslocamento–etapa</button>
+          <button class="panel-tab" data-tab="scope" role="tab" aria-selected="false">Osciloscópio</button>
+          <button class="panel-tab" data-tab="parts" role="tab" aria-selected="false">Lista de materiais</button>
+          <button class="panel-tab" data-tab="grafcet" role="tab" aria-selected="false">GRAFCET</button>
+        </div>
+
+        <div class="diagram-actions" data-for="steps">
+          <button id="diag-csv" class="mini-btn" title="Exportar traços em CSV">CSV</button>
+          <button id="diag-clear" class="mini-btn" title="Limpar gravação">Limpar</button>
+        </div>
+
+        <div class="diagram-actions" data-for="scope" hidden>
+          <label class="mini-field">Tempo
+            <select id="scope-timebase" class="mini-select">
+              <option value="0.05">50 ms</option>
+              <option value="0.1">100 ms</option>
+              <option value="0.5">500 ms</option>
+              <option value="1">1 s</option>
+              <option value="2" selected>2 s</option>
+              <option value="5">5 s</option>
+              <option value="10">10 s</option>
+            </select>
+          </label>
+          <label class="mini-field">Disparo
+            <select id="scope-trigmode" class="mini-select">
+              <option value="none" selected>Desligado</option>
+              <option value="rising">Borda de subida</option>
+              <option value="falling">Borda de descida</option>
+            </select>
+          </label>
+          <select id="scope-trigsrc" class="mini-select" title="Fonte de disparo"></select>
+          <label class="mini-field">Nível
+            <input id="scope-triglevel" class="mini-num" type="number" step="0.1" value="3">
+          </label>
+          <button id="scope-cursors" class="mini-btn" title="Mostrar/ocultar cursores">Cursores</button>
+          <button id="scope-freeze" class="mini-btn" title="Congelar imagem">Congelar</button>
+          <button id="scope-csv" class="mini-btn" title="Exportar canais em CSV">CSV</button>
+          <button id="scope-clear" class="mini-btn">Limpar</button>
+        </div>
+
+        <div class="diagram-actions" data-for="parts" hidden>
+          <button id="parts-csv" class="mini-btn" title="Exportar lista de materiais em CSV">CSV</button>
+        </div>
+
+        <div class="diagram-actions" data-for="grafcet" hidden>
+          <button id="gr-new" class="mini-btn" title="Criar GRAFCET para este circuito">Criar GRAFCET</button>
+          <button id="gr-add-step" class="mini-btn" title="Inserir etapa — depois clique em uma área livre">+ Etapa</button>
+          <button id="gr-del" class="mini-btn" title="Excluir seleção (Delete)">Excluir</button>
+          <span class="mini-hint">Arraste o ponto abaixo da etapa para criar uma transição</span>
+        </div>
+
+        <button id="diag-toggle" class="mini-btn" title="Mostrar/ocultar painel">▾</button>
+      </header>
+
+      <div class="panel-body">
+        <svg id="diagram" class="diagram" preserveAspectRatio="none"></svg>
+        <div id="scope-view" class="scope-view is-hidden">
+          <svg id="scope" class="scope" preserveAspectRatio="none"></svg>
+          <aside id="probe-list" class="probe-list"></aside>
+        </div>
+        <div id="parts-view" class="parts-view is-hidden"></div>
+        <div id="grafcet-view" class="grafcet-view is-hidden">
+          <svg id="grafcet" class="grafcet"></svg>
+          <aside id="grafcet-side" class="grafcet-side"></aside>
+        </div>
+      </div>
+    </section>
+
+  </section>
+
+  <div class="resize-handle resize-v" data-resize="right" role="separator"
+       aria-label="Ajustar largura das propriedades" title="Arraste para ajustar · Clique duplo restaura o tamanho"></div>
+
+  <aside class="panel inspector" aria-label="Propriedades">
+    <div class="panel-head">
+      <h2>Propriedades</h2>
+    </div>
+    <div id="inspector-body" class="inspector-body"></div>
+  </aside>
+
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+name: Bug report
+description: Something in the editor, export or UI does not work
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For "the physics is wrong", please use the **Modelling error** template instead — it
+        asks for the numbers that make such a report actionable.
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Load the example "Sequenz A+ B+ A− B−"
+        2. Arm a "stuck" fault on 1V1
+        3. Export as SVG
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected versus actual
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: Firefox 128 / Chrome 127 / Safari 17.5
+    validations:
+      required: true
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Console output
+      description: Anything the browser console printed. Leave empty if it stayed silent.
+      render: shell

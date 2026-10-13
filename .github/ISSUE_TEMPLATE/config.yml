@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Known modelling limits
+    url: https://github.com/alex-hahn/fluidlab/blob/main/docs/LIMITATIONS.md
+    about: Deliberate boundaries — no end-position cushioning, no thermal dynamics, op-amp without frequency response, and the rest. Please check here first.
+  - name: How the solver works
+    url: https://github.com/alex-hahn/fluidlab/blob/main/docs/PHYSICS.md
+    about: Flow law, network formulation, mechanics, hydraulics and MNA, with the measurements behind each claim.

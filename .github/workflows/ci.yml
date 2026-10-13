@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  gate:
+    name: Correctness Gate (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['18', '20', '22']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      # No install step: the project has zero runtime and zero dev dependencies.
+      # The README says so, so CI checks it instead of trusting it.
+      - name: Assert the dependency-free claim still holds
+        run: |
+          if [ -d node_modules ]; then
+            echo "node_modules exists — the zero-dependency claim broke."
+            exit 1
+          fi
+          if grep -rnE "^\s*(import|export)[^;]*from ['\"][^./]" src tests | grep -v "'node:"; then
+            echo "Bare import specifier above — that is a third-party dependency."
+            exit 1
+          fi
+          echo "Zero dependencies confirmed."
+
+      - name: Run the gate
+        run: node tests/run.js
